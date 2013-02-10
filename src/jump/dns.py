@@ -8,17 +8,17 @@ threads=[]
 cache={}
 cacheLock=threading.RLock()
 
-def gethostbyname(name, callback):
+def gethostbyname(name, callback, **kwargs):
 	log.info("Looking up hostname %s", name)
-	toResolve.put(("gethostbyname", name, callback), block=True)
+	toResolve.put(("gethostbyname", name, callback, kwargs), block=True)
 
-def gethostbyaddr(addr, callback):
+def gethostbyaddr(addr, callback, **kwargs):
 	log.info("Looking up address %s", addr)
-	toResolve.put(("gethostbyaddr", addr, callback), block=True)
+	toResolve.put(("gethostbyaddr", addr, callback, kwargs), block=True)
 
 def resolver():
 	try:
-		method, arg, callback=toResolve.get(block=True, timeout=1)
+		method, arg, callback, kwargs=toResolve.get(block=True, timeout=1)
 		
 		cacheLock.acquire(blocking=1)
 		if arg in cache:
@@ -30,7 +30,7 @@ def resolver():
 			cacheLock.acquire(blocking=1)
 			cache[arg]=result
 			cacheLock.release()
-		resolved.put((callback, result, threading.current_thread()), block=True)
+		resolved.put((callback, result, threading.current_thread(), kwargs), block=True)
 	except Queue.Empty:
 		pass
 
@@ -41,10 +41,10 @@ def run():
 		t.start()
 	try:
 		while not resolved.empty():
-			callback, result, thread=resolved.get(block=False)
+			callback, result, thread, kwargs=resolved.get(block=False)
 			thread.join()
 			threads.remove(thread)
-			callback(result)
+			callback(result, **kwargs)
 	except Queue.Empty:
 		pass
 
