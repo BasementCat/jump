@@ -4,7 +4,7 @@ JuMP is a lightweight protocol for the exchange of presence information and mess
 
 ## Protocol
 
-JuMP uses JSON-RPC version 2.0: see http://www.jsonrpc.org/specification for the details.  All params are named.  Ports are 6630 for SSL (default), 6631 unsecured.
+JuMP uses JSON-RPC version 2.0: see http://www.jsonrpc.org/specification for the details.  All params are named.  Ports are 6630 for SSL (default), 6631 unsecured.  JSON objects are delimited with "\r\n\r\n", this sequence cannot appear in a json object ("\n" must be used for line termination).
 
 ### Methods
 
