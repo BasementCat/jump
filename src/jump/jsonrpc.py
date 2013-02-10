@@ -60,7 +60,7 @@ class JsonRpcClient(Client):
 					#TODO: if this is an invalid method, tell the client
 					log.debug("Client %s called: %s", self, json.dumps(obj))
 					for m in RPCMethods[obj["method"]]:
-						m(self, **(obj["params"] if "params" in obj else {}))
+						m(self, obj, **(obj["params"] if "params" in obj else {}))
 			except ValueError:
 				log.error("Client sent invalid JSON: %s, %s", self, part)
 				pass #TODO: send err to client
