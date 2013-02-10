@@ -3,12 +3,18 @@
 import logging
 from jump.network import refresh
 from jump.entities import JumpServer
-from jump import NewClients
+from jump import dns, NewClients
 
 logging.basicConfig(level=logging.DEBUG)
 log=logging.getLogger(__name__)
 
 s=JumpServer("0.0.0.0", 1234)
 
-while True:
-	refresh()
+try:
+	while True:
+		dns.run()
+		refresh()
+except KeyboardInterrupt:
+	pass
+
+dns.stop()
