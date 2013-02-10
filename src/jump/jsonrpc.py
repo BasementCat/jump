@@ -19,7 +19,8 @@ class JsonRpcClient(Client):
 		if d=="":
 			log.debug("Client sent no data: %s", self)
 			if "_disconnect" in RPCMethods:
-				RPCMethods["_disconnect"](self)
+				for m in RPCMethods["_disconnect"]:
+					m(self)
 			self.close()
 			return
 		self.dataQueue+=d
@@ -33,6 +34,12 @@ class JsonRpcClient(Client):
 				continue
 			try:
 				obj=json.loads(part)
+				if not "jsonrpc" in obj:
+					#TODO: this is required
+					continue
+				elif obj["jsonrpc"]!=JSON_RPC_VERSION:
+					#TODO: error if versions don't match
+					continue
 				if "result" in obj or "error" in obj:
 					#this is a response
 					if not "id" in obj:
@@ -52,7 +59,8 @@ class JsonRpcClient(Client):
 					#this is a request
 					#TODO: if this is an invalid method, tell the client
 					log.debug("Client %s called: %s", self, json.dumps(obj))
-					RPCMethods[obj["method"]](self, **(obj["params"] if "params" in obj else {}))
+					for m in RPCMethods[obj["method"]]:
+						m(self, **(obj["params"] if "params" in obj else {}))
 			except ValueError:
 				log.error("Client sent invalid JSON: %s, %s", self, part)
 				pass #TODO: send err to client
@@ -83,11 +91,14 @@ class JsonRpcClient(Client):
 		return self.sock.sendall(json.dumps(out)+"\r\n\r\n")
 
 class JsonRpcServer(Server):
-	def onNewSock(self, newSock):
-		log.debug("Creating new jsonrpc client (server)")
-		cl=JsonRpcClient(newSock)
+	def onNewSock(self, newSock, listener):
+		if not isinstance(newSock, JsonRpcClient):
+			cl=JsonRpcClient(newSock, listener)
+		else:
+			cl=newSock
 		if "_connect" in RPCMethods:
-			RPCMethods["_connect"](cl)
+			for m in RPCMethods["_connect"]:
+				m(cl)
 		return cl
 
 def RpcMethod(methodName):

@@ -19,7 +19,7 @@ class Server(object):
 		self.sock.bind((self.host, self.port))
 		self.sock.listen(16)
 
-		log.debug("Listening on %s:%d", ("[%s]" if self.v6 else "%s")%(self.host,), self.port)
+		log.info("Listening on %s", self)
 
 		servers[self.sock]=self
 		allSocks.append(self.sock)
@@ -30,25 +30,32 @@ class Server(object):
 		del(servers[self.sock])
 		allSocks.remove(self.sock)
 		self.sock.close()
-		log.debug("Stopped listening on %s:%d", ("[%s]" if self.v6 else "%s")%(self.host,), self.port)
+		log.info("Stopped listening on %s", self)
 
 	def _onNewSock(self):
 		global clients, allSocks
 		newSock=self.sock.accept()[0]
-		out=self.onNewSock(newSock)
+		out=self.onNewSock(newSock, self)
 		clients[newSock]=out
 		allSocks.append(newSock)
 
-	def onNewSock(self, newSock):
-		return Client(newSock)
+	def onNewSock(self, newSock, listener):
+		return Client(newSock, listener)
+
+	def __str__(self):
+		if self.v6:
+			return "[%s]:%d"%(self.host, self.port)
+		else:
+			return "%s:%d"%(self.host, self.port)
 
 class Client(object):
-	def __init__(self, newSock):
+	def __init__(self, newSock, listener):
 		self.sock=newSock
 		self.localHost, self.localPort=self.sock.getsockname()
 		self.remoteHost, self.remotePort=self.sock.getpeername()
 		self.dataQueue=""
-		log.debug("New client: %s:%d->%s:%d", self.remoteHost, self.remotePort, self.localHost, self.localPort)
+		self.server=listener
+		log.info("New client: %s->%s", self, self.server)
 
 	def onNewData(self):
 		d=self.sock.recv(1024)
