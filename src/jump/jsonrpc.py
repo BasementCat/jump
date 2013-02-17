@@ -9,6 +9,34 @@ RPCMethods={}
 
 log=logging.getLogger(__name__)
 
+class JsonRpcRequest(JsonRpcMessage):
+	callbacks={}
+
+	def __init__(self, endpoint, callback, method, **kwargs):
+		self.endpoint=endpoint
+		self.callback=callback
+		self.method=method
+		self.params=kwargs
+		self.jsonrpc=JSON_RPC_VERSION
+
+	def asDict(self):
+		out={
+			"jsonrpc": self.jsonrpc,
+			"method": self.method,
+			"params": self.params
+		}
+		if self.callback:
+			out.update({"id": self._id})
+
+	def asJson(self):
+		return json.dumps(self.asDict())+"\r\n\r\n"
+
+	def call(self):
+		if self.callback
+			self._id=uuid.uuid4()
+			self.responseCallbacks[self._id]=(datetime.utcnow()+timedelta(seconds=RESPONSE_TIMEOUT), callback)
+		return self.sock.sendall(self.asJson())
+
 class JsonRpcClient(Client):
 	def __init__(self, *args, **kwargs):
 		super(JsonRpcClient, self).__init__(*args, **kwargs)
@@ -64,17 +92,6 @@ class JsonRpcClient(Client):
 			except ValueError:
 				log.error("Client sent invalid JSON: %s, %s", self, part)
 				pass #TODO: send err to client
-
-	def call(self, method, callback=None, **kwargs):
-		out={
-			"jsonrpc": JSON_RPC_VERSION,
-			"method": method,
-			"params": kwargs
-		}
-		if callback:
-			out.update({"id": str(uuid.uuid4())})
-			self.responseCallbacks[out["id"]]=(datetime.utcnow()+timedelta(seconds=RESPONSE_TIMEOUT), callback)
-		return self.sock.sendall(json.dumps(out)+"\r\n\r\n")
 
 	def reply(self, orig, result=None, error=None):
 		if not "id" in orig:

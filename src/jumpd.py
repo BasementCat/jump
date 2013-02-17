@@ -3,7 +3,8 @@
 import logging
 from jump.network import refresh
 from jump.entities import JumpServer
-from jump import dns, NewClients
+from jump import dns, database
+from jump import NewClients, Registration
 
 logging.basicConfig(level=logging.DEBUG)
 log=logging.getLogger(__name__)
