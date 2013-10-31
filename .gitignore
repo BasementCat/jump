@@ -1,5 +1,6 @@
 *.pyc
 *.egg-info
+*.egg
 dist
 .DS_Store
 jump-env/
