@@ -32,12 +32,12 @@ class TestSMTPd(unittest.TestCase):
         time.sleep(1)
         
         #now make sure the smtpd is accepting connections or we can't keep testing
-        s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        res=s.connect_ex(("127.0.0.1", 2525))
-        s.close()
+        self.sock=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        res=self.sock.connect_ex(("127.0.0.1", 2525))
         self.assertEqual(res, 0, "The test SMTPD is not accepting connections")
 
     def tearDown(self):
+        self.sock.close()
         self._stop_smtpd.set()
         self._smtpd_thread.join()
 
