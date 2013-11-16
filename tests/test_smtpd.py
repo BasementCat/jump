@@ -44,5 +44,8 @@ class TestSMTPd(unittest.TestCase):
     def test_test(self):
         self.assertTrue(True)
 
+    def test_asdf(self):
+        self.sock.send("asdflkjaslkdf\r\n")
+
 if __name__ == '__main__':
     unittest.main()

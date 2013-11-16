@@ -16,6 +16,6 @@ setup (
     url="http://github.com/basementcat/jump",
     packages=["jump", "tests"],
     test_suite="nose.collector",
-    install_requires=[],
+    install_requires=['secure-smtpd', 'argparse'],
     tests_require=["nose"]
 )
