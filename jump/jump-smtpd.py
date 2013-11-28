@@ -11,7 +11,7 @@ from secure_smtpd import SMTPServer
 class JumpSMTPd (SMTPServer):
     #def __init__(self, localaddr, remoteaddr, ssl=False, certfile=None, keyfile=None, ssl_version=ssl.PROTOCOL_SSLv23, require_authentication=False, credential_validator=None, maximum_execution_time=30, process_count=5):
     def __init__(self, cmd_args, *args, **kwargs):
-        super(SMTPServer, self).__init__(*args, **kwargs)
+        SMTPServer.__init__(self, *args, **kwargs)
         self.cmd_args = cmd_args
 
     def process_message(self, peer, mailfrom, rcpttos, data):
