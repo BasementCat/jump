@@ -12,6 +12,8 @@ import random
 
 import beanstalkc
 
+from chat import Chat
+
 class TestSMTPd(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(TestSMTPd, self).__init__(*args, **kwargs)
@@ -86,16 +88,42 @@ class TestSMTPd(unittest.TestCase):
         bs_sock.close()
 
         self.beanstalk = beanstalkc.Connection(**self.beanstalkd)
+        self.beanstalk.watch('new_smtp')
 
     def tearDown(self):
-        self.sock.close()
+        try:
+            self.sock.close()
+        except:
+            pass
         self._stop_procs.set()
         self._procs_thread.join()
         shutil.rmtree(self.smtpd_args['queue'])
         self.smtpd_args['queue'] = None
 
-    def test_asdf(self):
-        self.sock.send("asdflkjaslkdf\r\n")
+    def test_send(self):
+        sock = Chat(self.sock, line_term = "\r\n")
+        sock.rexpect(ur"^220")
+        sock.send("HELO unittesting")
+        sock.rexpect(ur"^250")
+        sock.send("MAIL FROM: <support@port25.com>")
+        sock.rexpect(ur"^250")
+        sock.send("RCPT TO: <support@port25.com>")
+        sock.rexpect(ur"^250")
+        sock.send("DATA")
+        sock.rexpect(ur"^354")
+        sock.send('From: "John Smith" <jsmith@port25.com>')
+        sock.send('To: "Jane Doe" <jdoe@port25.com>')
+        sock.send('Subject: test message sent from manual telnet session')
+        sock.send('Date: Wed, 11 May 2011 16:19:57 -0400\r\n')
+        sock.send('Hello World,')
+        sock.send('This is a test message sent from a manual telnet session.\r\n')
+        sock.send('Yours truly,')
+        sock.send('SMTP administrator')
+        sock.send('.')
+        sock.rexpect(ur"^250")
+        sock.send("QUIT")
+        sock.rexpect(ur"^221")
+        self.assertIsNotNone(self.beanstalk.reserve(timeout = 30))
 
 if __name__ == '__main__':
     unittest.main()
