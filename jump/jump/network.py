@@ -1,10 +1,21 @@
-import socket, select, logging
+import socket
+import select
+import logging
+import re
 
 servers={}
 clients={}
 allSocks=[]
 
 log=logging.getLogger(__name__)
+
+def parse_service(service):
+	m = re.match(ur"^((?:\d{1,3}\.){3}\d{1,3})(?::(\d{1,5}))$", service)
+	if not m:
+		m = re.match(ur"^\[?([0-9a-f:]{2,39})\]?(?::(\d{1,5}))$", service)
+	if m:
+		return (m.group(1), int(m.group(2)))
+	return None
 
 class Server(object):
 	def __init__(self, host, port, v6=False):
