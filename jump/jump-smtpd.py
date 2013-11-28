@@ -32,9 +32,9 @@ if __name__ == '__main__':
     parser.add_argument('--port', default = 25, type = int, help = "Unencrypted SMTP port  (0 to disable)")
     parser.add_argument('--ssl', action = 'store_true', help = "Enable SSL - a certfile and keyfile must be specified")
     parser.add_argument('--ssl-port', default = 465, type = int, help = "SMTP+SSL port")
-    parser.add_argument('--certfile', nargs = 1, help = "SSL certfile")
-    parser.add_argument('--keyfile', nargs = 1, help = "SSL keyfile")
-    parser.add_argument('--queue', nargs = 1, default = '/var/jump/smtpd-queue', help = "Messages will be dumped to this queue directory for processing")
+    parser.add_argument('--certfile', help = "SSL certfile")
+    parser.add_argument('--keyfile', help = "SSL keyfile")
+    parser.add_argument('--queue', default = '/var/jump/smtpd-queue', help = "Messages will be dumped to this queue directory for processing")
     parser.add_argument('--debug', action = 'store_true', help = "Enable debugging - extra output may be produced")
     args = parser.parse_args()
 
