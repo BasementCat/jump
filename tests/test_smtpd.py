@@ -13,14 +13,28 @@ class TestSMTPd(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(TestSMTPd, self).__init__(*args, **kwargs)
         self.smtpd = os.path.join(os.path.dirname(os.path.dirname(__file__)), "jump", "jump-smtpd.py")
-        self.smtpd_args = [
-            '--host',     '0.0.0.0',
-            '--port',     '2525',
-        ]
-        self.queue_dir = None
+        self.smtpd_args = {
+            'host':     '0.0.0.0',
+            'port':     2525,
+            'ssl':      False,
+            'ssl-port': None, #465
+            'certfile': None,
+            'keyfile':  None,
+            'queue':    None,
+        }
+
+    def _make_args(self):
+        out = []
+        for k,v in self.smtpd_args.items():
+            if not v:
+                continue
+            out.append('--' + k)
+            if v is not True:
+                out.append(str(v))
+        return out
 
     def _run_smtpd(self):
-        smtpd_proc=subprocess.Popen(["python", self.smtpd, '--queue', self.queue_dir] + self.smtpd_args, stdout=sys.stderr, stderr=sys.stderr)
+        smtpd_proc=subprocess.Popen(["python", self.smtpd] + self._make_args(), stdout=sys.stderr, stderr=sys.stderr)
         pid=smtpd_proc.pid
         self._stop_smtpd.wait()
         smtpd_proc.terminate()
@@ -32,7 +46,7 @@ class TestSMTPd(unittest.TestCase):
 
     def setUp(self):
         #Make a tempdir for our queue
-        self.queue_dir = tempfile.mkdtemp()
+        self.smtpd_args['queue'] = tempfile.mkdtemp()
         #start up the smtpd
         self._stop_smtpd=threading.Event()
         self._smtpd_thread=threading.Thread(target=self._run_smtpd)
@@ -49,8 +63,8 @@ class TestSMTPd(unittest.TestCase):
         self.sock.close()
         self._stop_smtpd.set()
         self._smtpd_thread.join()
-        shutil.rmtree(self.queue_dir)
-        self.queue_dir = None
+        shutil.rmtree(self.smtpd_args['queue'])
+        self.smtpd_args['queue'] = None
 
     def test_test(self):
         self.assertTrue(True)
